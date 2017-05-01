@@ -1,0 +1,9 @@
+{
+  "verbose": true,
+  "ignore": ["*.test.js", "fixtures/*"],
+  "watch" : [
+    "views",
+    "server"
+  ],
+  "ext" : "js html"
+}
