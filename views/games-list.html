@@ -3,3 +3,9 @@
 <h2>Game Count: {{ game_count }}</h2>
 <h2>unplayed: {{ unplayed }}</h2>
 <h2>barely played: {{ barely_played }}</h2>
+
+<ul>
+  {{#game_list}}
+    <li>{{ data.name }}</li>
+  {{/game_list}}
+</ul>

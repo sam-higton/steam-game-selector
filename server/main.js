@@ -2,6 +2,7 @@ var express = require('express');
 var Promise = require('bluebird');
 var request = Promise.promisify(require('request'));
 var fs = Promise.promisifyAll(require('fs'));
+var readFile = Promise.promisify(require('fs').readFile);
 var path = require('path');
 var app = express();
 
@@ -29,6 +30,8 @@ app.get('/', function (req, res) {
             var gameCount = response.game_count;
             var unplayed = 0;
             var barelyPlayed = 0;
+            var gamePromises = [];
+            var gameList = [];
             for(var i in response.games) {
               var game = response.games[i];
               var playTime = game.playtime_forever;
@@ -37,14 +40,22 @@ app.get('/', function (req, res) {
               } else if (playTime > 0 && playTime < 30) {
                 barelyPlayed++;
               }
-              getGameDetails(game.appid);
+              var promise = getGameDetails(game.appid);
+              promise.then(function (gameData) {
+                console.log(gameData);
+                gameList.push(gameData);
+              });
+              gamePromises.push(promise);
             }
-            res.render('games-list.html', {
-              user_name: req.query.user_name,
-              steam_id: steamId,
-              game_count: gameCount,
-              unplayed: unplayed,
-              barely_played: barelyPlayed
+            Promise.all(gamePromises).then(function () {
+              res.render('games-list.html', {
+                user_name: req.query.user_name,
+                steam_id: steamId,
+                game_count: gameCount,
+                unplayed: unplayed,
+                barely_played: barelyPlayed,
+                game_list: gameList
+              });
             });
           });
 
@@ -70,12 +81,13 @@ function getGameDetails (appId) {
   var storeUrl = "http://store.steampowered.com/api/appdetails/?appids=";
   return new Promise(function (resolve, reject) {
     if(fs.existsSync(cache_path + appId)) {
-
+      readFile(cache_path + appId).then(function (data) {
+        resolve(JSON.parse(data)[appId]);
+      });
     } else {
       request(storeUrl + appId).then(function (result) {
         console.log('############ APP ID ##########');
         console.log(appId);
-        console.log(result.body);
         var gameDetails = JSON.parse(result.body)[appId];
         resolve(gameDetails);
         fs.writeFile(cache_path + appId,result.body);
