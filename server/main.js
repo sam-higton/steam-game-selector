@@ -6,7 +6,7 @@ var readFile = Promise.promisify(require('fs').readFile);
 var path = require('path');
 var app = express();
 
-const api_key = "5C419535AC2011881FB0C33C06FF39AB";
+const api_key = "";
 const cache_path = "game_cache/";
 
 var mustacheExpress = require('mustache-express');
